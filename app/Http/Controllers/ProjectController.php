@@ -4,10 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Project;
-use App\Models\Technology;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class ProjectController extends Controller
 {
@@ -18,12 +16,9 @@ class ProjectController extends Controller
     {
         $perPage = $this->perPage($request);
         $status = $request->query('status', '');
-        $search = trim((string) $request->query('search', ''));
 
         // Filter status memakai local scope sebelum paginate.
-        // Latihan P11: search admin digabung dengan filter status lewat when().
-        $query = Project::with('category')
-            ->when($search, fn ($q, $s) => $q->search($s));
+        $query = Project::with('category');
 
         if ($status === 'published') {
             $query->published();
@@ -45,7 +40,6 @@ class ProjectController extends Controller
         return view('posts.projects.index', compact(
             'projects',
             'status',
-            'search',
             'perPage',
             'totalProjects',
             'totalPublished',
@@ -82,7 +76,6 @@ class ProjectController extends Controller
     {
         return view('posts.projects.create', [
             'categories' => Category::all(),
-            'technologies' => Technology::orderBy('name')->get(),
         ]);
     }
 
@@ -90,21 +83,12 @@ class ProjectController extends Controller
     {
         $validated = $request->validate($this->rules(), $this->messages());
 
-        // P11: slug dibuat dari name. Str::slug('Laravel Blog') = 'laravel-blog'
-        $validated['slug'] = Str::slug($validated['name']);
-        $validated['is_featured'] = $request->boolean('is_featured');
-
         if ($request->hasFile('thumbnail')) {
             $validated['thumbnail'] = $request->file('thumbnail')
                 ->store('projects/thumbnails', 'public');
         }
 
-        // technologies[] bukan kolom projects, keluarkan dulu sebelum create().
-        $technologyIds = $validated['technologies'] ?? [];
-        unset($validated['technologies']);
-
-        $project = Project::create($validated);
-        $project->technologies()->attach($technologyIds);
+        Project::create($validated);
 
         return redirect()->route('post.projects.create')
             ->with('success', 'Project berhasil ditambahkan.');
@@ -121,26 +105,14 @@ class ProjectController extends Controller
     public function edit(Project $project)
     {
         return view('posts.projects.edit', [
-            'project' => $project->load('technologies'),
+            'project' => $project,
             'categories' => Category::all(),
-            'technologies' => Technology::orderBy('name')->get(),
         ]);
     }
 
     public function update(Request $request, Project $project)
     {
-        $validated = $request->validate($this->rules($project), $this->messages());
-
-        // Slug ikut diperbarui jika nama berubah (project lama yang slug-nya NULL juga terisi).
-        $validated['slug'] = Str::slug($validated['name']);
-        $validated['is_featured'] = $request->boolean('is_featured');
-
-        $technologyIds = $validated['technologies'] ?? [];
-        unset($validated['technologies']);
-
-        // sync(): pivot disamakan persis dengan checkbox yang dicentang.
-        $techChanges = $project->technologies()->sync($technologyIds);
-        $techChanged = array_filter($techChanges) !== [];
+        $validated = $request->validate($this->rules(), $this->messages());
 
         if ($request->hasFile('thumbnail')) {
             if ($project->thumbnail) {
@@ -156,7 +128,7 @@ class ProjectController extends Controller
         $project->fill($validated);
 
         // isDirty mengecek apakah ada kolom yang benar-benar berubah.
-        if (! $project->isDirty() && ! $techChanged) {
+        if (! $project->isDirty()) {
             return redirect()
                 ->route('post.projects.show', $project->id)
                 ->with('info', 'Tidak ada perubahan data.');
@@ -219,25 +191,17 @@ class ProjectController extends Controller
     }
 
     // Aturan validasi untuk store dan update.
-    // P11: name unik agar slug tidak bentrok; saat update, project itu sendiri dikecualikan.
-    private function rules(?Project $project = null): array
+    private function rules(): array
     {
         return [
-            'name'              => 'required|max:255|unique:projects,name' . ($project ? ',' . $project->id : ''),
-            'category_id'       => 'required|exists:categories,id',
-            'short_description' => 'nullable|max:255',
-            'description'       => 'nullable',
-            'status'            => 'required|in:draft,published',
-            'project_url'       => 'nullable|url|max:255',
-            'repository_url'    => 'nullable|url|max:255',
-            'technologies'      => 'nullable|array',
-            'technologies.*'    => 'exists:technologies,id',
-            'project_date'      => 'nullable|date',
-            'is_featured'       => 'nullable|boolean',
-            'thumbnail'         => 'nullable|image|mimes:jpg,jpeg,png,webp'
-                                 . '|max:2048|dimensions:min_width=400,min_height=300',
-            'started_at'        => 'nullable|date',
-            'budget'            => 'nullable|integer|min:0',
+            'name'        => 'required|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'thumbnail'   => 'nullable|image|mimes:jpg,jpeg,png,webp'
+                           . '|max:2048|dimensions:min_width=400,min_height=300',
+            'description' => 'required|string|min:10',
+            'status' => 'required|in:draft,published',
+            'started_at' => 'nullable|date',
+            'budget' => 'nullable|integer|min:0',
         ];
     }
 
@@ -247,18 +211,14 @@ class ProjectController extends Controller
         return [
             'name.required' => 'Nama project wajib diisi.',
             'name.max' => 'Nama project maksimal 255 karakter.',
-            'name.unique' => 'Nama project sudah dipakai.',
-            'short_description.max' => 'Deskripsi singkat maksimal 255 karakter.',
-            'project_url.url' => 'Project URL harus berupa URL yang valid.',
-            'repository_url.url' => 'Repository URL harus berupa URL yang valid.',
-            'technologies.*.exists' => 'Technology tidak ditemukan.',
-            'project_date.date' => 'Tanggal project tidak valid.',
             'category_id.required' => 'Kategori wajib dipilih.',
             'category_id.exists' => 'Kategori tidak ditemukan.',
             'thumbnail.image' => 'Thumbnail harus berupa gambar.',
             'thumbnail.mimes' => 'Thumbnail harus jpg, jpeg, png, atau webp.',
             'thumbnail.max' => 'Ukuran thumbnail maksimal 2 MB.',
             'thumbnail.dimensions' => 'Thumbnail minimal 400 x 300 px.',
+            'description.required' => 'Deskripsi project wajib diisi.',
+            'description.min' => 'Deskripsi project minimal 10 karakter.',
             'status.required' => 'Status project wajib dipilih.',
             'status.in' => 'Status hanya boleh draft atau published.',
             'started_at.date' => 'Tanggal mulai tidak valid.',

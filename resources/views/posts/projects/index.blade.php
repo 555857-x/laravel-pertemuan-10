@@ -69,10 +69,7 @@
         </form>
 
         {{-- Filter status dan jumlah data per halaman. --}}
-        {{-- Latihan P11: search + filter status bekerja bersama (query string GET). --}}
         <form action="{{ route('post.projects.index') }}" method="GET" class="d-flex flex-wrap gap-2 align-items-center mb-4">
-            <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-sm w-auto" placeholder="Search nama / deskripsi">
-
             <label for="status" class="small">Status</label>
             <select id="status" name="status" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
                 <option value="" @selected($status === '')>Semua</option>
@@ -87,11 +84,7 @@
                 @endforeach
             </select>
 
-            <button type="submit" class="btn btn-sm btn-primary">Terapkan</button>
-            @if ($search !== '' || $status !== '')
-                <a href="{{ route('post.projects.index') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
-                <span class="small text-muted">{{ $projects->total() }} hasil ditemukan</span>
-            @endif
+            <noscript><button type="submit" class="btn btn-sm btn-secondary">Terapkan</button></noscript>
         </form>
 
         @include('partials.flash')
