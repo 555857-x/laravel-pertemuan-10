@@ -12,9 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('projects', function (Blueprint $table) {
-            $table->enum('status', ['draft', 'published'])->default('draft')->after('description');
-            $table->date('started_at')->nullable()->after('status');
-            $table->unsignedBigInteger('budget')->nullable()->after('started_at');
+            $table->string('slug')->nullable()->unique()->after('name');
+                $table->string('short_description')->nullable()->after('slug');
+                $table->text('description')->nullable()->after('short_description');
+                $table->string('status')->default('draft')->after('description');
+                $table->date('project_date')->nullable();
+                $table->boolean('is_featured')->default(false);
+                $table->string('project_url')->nullable();
+                $table->string('repository_url')->nullable();
         });
     }
 

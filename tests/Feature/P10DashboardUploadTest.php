@@ -24,10 +24,12 @@ class P10DashboardUploadTest extends TestCase
     private function project(array $extra = []): Project
     {
         $cat = Category::firstOrCreate(['name' => 'Web']);
-        return Project::create(array_merge([
+        $data = array_merge([
             'name' => 'Portofolio Laravel', 'category_id' => $cat->id,
             'description' => 'Deskripsi project panjang', 'status' => 'published',
-        ], $extra));
+        ], $extra);
+        $data['slug'] ??= \Illuminate\Support\Str::slug($data['name']); // P11: detail memakai slug
+        return Project::create($data);
     }
 
     public function test_dashboard_counts(): void
@@ -71,7 +73,7 @@ class P10DashboardUploadTest extends TestCase
         $p = Project::first();
         $this->assertStringStartsWith('projects/thumbnails/', $p->thumbnail);
         Storage::disk('public')->assertExists($p->thumbnail);
-        $this->get('/projects/' . $p->id)->assertOk()->assertSee('storage/' . $p->thumbnail);
+        $this->get('/projects/' . $p->slug)->assertOk()->assertSee('storage/' . $p->thumbnail);
         $this->get('/projects')->assertOk()->assertSee('Project Baru');
     }
 
@@ -126,7 +128,7 @@ class P10DashboardUploadTest extends TestCase
 
         $img = $p->images()->first();
         $this->actingAs($admin)->put("/post/projects/{$p->id}/images/{$img->id}", ['caption' => 'Halaman login'])->assertRedirect();
-        $this->get("/projects/{$p->id}")->assertSee('Halaman login');
+        $this->get("/projects/{$p->slug}")->assertSee('Halaman login');
 
         $this->actingAs($admin)->delete("/post/projects/{$p->id}/images/{$img->id}")->assertRedirect();
         Storage::disk('public')->assertMissing($img->image);
@@ -166,7 +168,7 @@ class P10DashboardUploadTest extends TestCase
 
         $this->actingAs($admin)->delete("/post/projects/{$p->id}")->assertRedirect('/post/projects');
         Storage::disk('public')->assertExists($thumb);
-        $this->get("/projects/{$p->id}")->assertNotFound();
+        $this->get("/projects/{$p->slug}")->assertNotFound();
 
         $this->actingAs($admin)->delete("/post/projects/{$p->id}/force-delete")->assertRedirect('/post/projects/trash');
         Storage::disk('public')->assertMissing($thumb);

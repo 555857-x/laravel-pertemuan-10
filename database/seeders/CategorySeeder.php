@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class CategorySeeder extends Seeder
 {
@@ -14,7 +15,8 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
         foreach (['Web', 'Mobile', 'Desktop'] as $name) {
-            Category::firstOrCreate(['name' => $name]);
+            // P11: slug dipakai filter ?category=web
+            Category::updateOrCreate(['name' => $name], ['slug' => Str::slug($name)]);
         }
     }
 }

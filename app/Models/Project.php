@@ -12,15 +12,13 @@ class Project extends Model
     use HasFactory, SoftDeletes;
 
     // Kolom yang boleh diisi lewat create() dan update().
-    // Modul P10: name, category_id, thumbnail. Sisanya kolom dari P7-P8.
+    // Modul P11: kolom baru wajib masuk $fillable.
     protected $fillable = [
-        'name',
-        'category_id',
-        'thumbnail',
-        'description',
-        'status',
-        'started_at',
-        'budget',
+        'name', 'slug', 'category_id', 'short_description', 'description',
+        'status', 'project_date', 'is_featured', 'project_url',
+        'repository_url', 'thumbnail',
+        // Kolom lama dari P7-P8 yang masih dipakai form admin.
+        'started_at', 'budget',
     ];
 
     // started_at menjadi objek Carbon agar mudah diformat (pengganti $dates).
@@ -29,6 +27,8 @@ class Project extends Model
         return [
             'started_at' => 'date',
             'budget' => 'integer',
+            'project_date' => 'date',
+            'is_featured' => 'boolean',
         ];
     }
 
@@ -69,5 +69,11 @@ class Project extends Model
     public function images()
     {
         return $this->hasMany(ProjectImage::class)->orderBy('sort_order');
+    }
+
+    // P11: relasi many-to-many lewat tabel pivot project_technology.
+    public function technologies()
+    {
+        return $this->belongsToMany(Technology::class);
     }
 }

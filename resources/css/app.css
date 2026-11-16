@@ -41,3 +41,13 @@ footer {
     color: white;
     text-align: center;
 }
+/* P11: pagination Bootstrap dibungkus <nav>, jangan ikut gaya navbar lama di atas. */
+nav:has(.pagination) {
+    padding: 0;
+    background-color: transparent;
+    text-align: left;
+}
+
+nav:has(.pagination) a {
+    margin: 0;
+}

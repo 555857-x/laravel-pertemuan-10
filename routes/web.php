@@ -13,11 +13,13 @@ Route::view('/', 'home')->name('home');
 Route::view('/about', 'about')->name('about');
 Route::view('/education', 'education')->name('education');
 
-// P10: daftar project di /projects, detail di /projects/{project}.
+// P11: daftar project di /projects (search, filter, sort, pagination).
 Route::get('/projects', [PortfolioController::class, 'projects'])
     ->name('projects');
 
-Route::get('/projects/{project}', [PortfolioController::class, 'show'])
+// sebelum : /projects/3
+// sesudah : /projects/laravel-blog  ({project:slug} = route model binding lewat kolom slug)
+Route::get('/projects/{project:slug}', [PortfolioController::class, 'show'])
     ->name('projects.show');
 
 // Bawaan Breeze: dashboard dan pengaturan profil.
