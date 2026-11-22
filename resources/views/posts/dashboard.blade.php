@@ -11,11 +11,14 @@
 <section class="max-w-6xl mx-auto px-5 py-8">
     <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
 
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+{{-- P12 Latihan 4: grid dinaikkan ke 3 kolom (md) dan 6 kolom (lg) supaya 6 card rapi. --}}
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
     <x-stat-card label="Projects"     :value="$totalProjects" />
     <x-stat-card label="Categories"   :value="$totalCategories" color="text-green-600" />
     <x-stat-card label="Technologies" :value="$totalTechnologies" color="text-purple-600" />
     <x-stat-card label="Skills"       :value="$totalSkills" color="text-orange-600" />
+    <x-stat-card label="Messages"     :value="$totalMessages" color="text-indigo-600" />
+    <x-stat-card label="Belum Dibaca" :value="$unreadMessages" color="text-pink-600" />
 </div>
 
     {{-- Latihan mandiri: Published + Draft = Total Projects. --}}
@@ -77,6 +80,7 @@
     <div class="flex flex-wrap gap-3 mt-8">
         <a href="{{ route('post.projects.index') }}" class="bg-blue-600 text-white px-4 py-2 rounded">Kelola Project</a>
         <a href="{{ route('post.skills.index') }}" class="bg-orange-600 text-white px-4 py-2 rounded">Kelola Skill</a>
+        <a href="{{ route('post.contacts.index') }}" class="bg-indigo-600 text-white px-4 py-2 rounded">Lihat Messages</a>
         <a href="{{ route('projects') }}" class="bg-gray-700 text-white px-4 py-2 rounded">Lihat Halaman Publik</a>
     </div>
 </section>

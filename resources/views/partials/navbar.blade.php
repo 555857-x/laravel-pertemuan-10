@@ -57,6 +57,13 @@
                 Projects
             </a>
 
+            <a
+                href="{{ route('contact') }}"
+                style="color: #2563eb; text-decoration: none;"
+            >
+                Contact
+            </a>
+
             {{-- Bagian ini berubah sesuai status login. --}}
             @auth
                 {{-- Link dashboard hanya untuk admin, user biasa akan dapat 403. --}}
@@ -66,6 +73,14 @@
                         style="color: #2563eb; text-decoration: none;"
                     >
                         Dashboard
+                    </a>
+
+                    {{-- P12 Latihan 3: link ke halaman pesan masuk. --}}
+                    <a
+                        href="{{ route('post.contacts.index') }}"
+                        style="color: #2563eb; text-decoration: none;"
+                    >
+                        Messages
                     </a>
                 @endif
 

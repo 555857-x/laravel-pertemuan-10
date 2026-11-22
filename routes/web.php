@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\ContactAdminController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\ProfileController;
@@ -21,6 +23,14 @@ Route::get('/projects', [PortfolioController::class, 'projects'])
 // sesudah : /projects/laravel-blog  ({project:slug} = route model binding lewat kolom slug)
 Route::get('/projects/{project:slug}', [PortfolioController::class, 'show'])
     ->name('projects.show');
+
+// P12: form contact. GET menampilkan form, POST dibatasi 3 pesan per menit per IP
+// lewat named limiter contact (lihat AppServiceProvider).
+Route::get('/contact', [ContactController::class, 'create'])->name('contact');
+
+Route::post('/contact', [ContactController::class, 'store'])
+    ->middleware('throttle:contact')
+    ->name('contact.store');
 
 // Bawaan Breeze: dashboard dan pengaturan profil.
 Route::get('/dashboard', function () {
@@ -53,6 +63,10 @@ Route::prefix('post')->name('post.')->middleware(['auth', 'admin'])->group(funct
     Route::post('/projects/{project}/images', [ProjectGalleryController::class, 'store'])->name('projects.images.store');
     Route::put('/projects/{project}/images/{image}', [ProjectGalleryController::class, 'update'])->name('projects.images.update');
     Route::delete('/projects/{project}/images/{image}', [ProjectGalleryController::class, 'destroy'])->name('projects.images.destroy');
+
+    // P12 Latihan 3: pesan masuk dari form contact, hanya untuk admin.
+    Route::get('/contacts', [ContactAdminController::class, 'index'])->name('contacts.index');
+    Route::get('/contacts/{contact}', [ContactAdminController::class, 'show'])->name('contacts.show');
 
     // Latihan: edit skill.
     Route::resource('skills', SkillController::class)->only(['index', 'edit', 'update']);

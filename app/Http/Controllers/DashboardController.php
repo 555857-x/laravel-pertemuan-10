@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{Category, Project, Skill, Technology};
+use App\Models\{Category, Contact, Project, Skill, Technology};
 
 class DashboardController extends Controller
 {
@@ -20,6 +20,10 @@ class DashboardController extends Controller
             'totalDraft'        => Project::draft()->count(),
             'topSkill'          => Skill::orderByDesc('level')->first(),
             'categories'        => Category::withCount('projects')->orderBy('name')->get(),
+
+            // P12 Latihan 4: jumlah pesan masuk dan yang belum dibaca.
+            'totalMessages'     => Contact::count(),
+            'unreadMessages'    => Contact::where('is_read', false)->count(),
         ]);
     }
 }
